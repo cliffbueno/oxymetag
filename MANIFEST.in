@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include requirements.txt
+include environment.yml
+recursive-include oxymetag/data *
+recursive-include oxymetag/scripts *
