@@ -1,6 +1,6 @@
 # OxyMetaG
 
-Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG identifies bacterial oxygen metabolism patterns by analyzing protein functional domains in metagenomic samples and predicting aerobe abundance using machine learning.
+Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG predicts the percent relative abundance of aerobic bacteria in metagenomic reads based on the ratio of abundances of a set of 20 Pfams.
 
 ## Installation
 
