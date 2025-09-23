@@ -182,7 +182,7 @@ from metagenomic data using protein functional domains.
 
 ## License
 
-MIT License
+GPL-3.0 License
 
 ## Support
 
