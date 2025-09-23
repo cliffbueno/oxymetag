@@ -48,13 +48,13 @@ oxymetag profile -i BactReads -o diamond_output -t 8
 ### 4. Predict aerobe levels
 ```bash
 # For modern DNA
-oxymetag predict -i diamond_output -o results.tsv -m modern
+oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m modern
 
 # For ancient DNA
-oxymetag predict -i diamond_output -o results.tsv -m ancient
+oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m ancient
 
 # Custom cutoffs
-oxymetag predict -i diamond_output -o results.tsv -m custom --idcut 50 --bitcut 30 --ecut 0.01
+oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idcut 50 --bitcut 30 --ecut 0.01
 ```
 
 ## Commands
@@ -124,7 +124,7 @@ oxymetag predict -i diamond_output -o results.tsv -m custom --idcut 50 --bitcut 
 
 **Arguments:**
 - `-i, --input`: Directory with DIAMOND output (default: diamond_output)
-- `-o, --output`: Output file (default: oxygen_predictions.tsv)
+- `-o, --output`: Output file (default: per_aerobe_predictions.tsv)
 - `-t, --threads`: Number of threads (default: 4)
 - `-m, --mode`: Filtering mode - 'modern', 'ancient', or 'custom' (default: modern)
 - `--idcut`: Custom identity cutoff (for custom mode)
@@ -154,7 +154,7 @@ OxyMetaG includes three pre-configured filtering modes optimized for different t
 
 ## Output
 
-The final output (`oxygen_predictions.tsv`) contains:
+The final output (`per_aerobe_predictions.tsv`) contains:
 - `SampleID`: Sample identifier extracted from filenames
 - `ratio`: Aerobic/anaerobic domain ratio
 - `aerobe_pfams`: Number of aerobic Pfam domains detected

@@ -149,7 +149,7 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
             continue
 
 
-def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "oxygen_predictions.tsv",
+def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_aerobe_predictions.tsv",
                    mode: str = "modern", id_cut: float = None, bit_cut: float = None, 
                    e_cut: float = None, threads: int = 4):
     """

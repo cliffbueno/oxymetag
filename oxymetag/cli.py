@@ -38,8 +38,8 @@ def main():
                                help='Input fastq.gz files')
     extract_parser.add_argument('-o', '--output', default='BactReads',
                                help='Output directory (default: BactReads)')
-    extract_parser.add_argument('-t', '--threads', type=int, default=4,
-                               help='Number of threads (default: 4)')
+    extract_parser.add_argument('-t', '--threads', type=int, default=48,
+                               help='Number of threads (default: 48)')
     extract_parser.add_argument('--kraken-db', default='kraken2_db',
                                help='Kraken2 database path (default: kraken2_db)')
     
@@ -58,8 +58,8 @@ def main():
     predict_parser = subparsers.add_parser('predict', help='Predict aerobe levels')
     predict_parser.add_argument('-i', '--input', default='diamond_output',
                                help='Input directory (default: diamond_output)')
-    predict_parser.add_argument('-o', '--output', default='oxygen_predictions.tsv',
-                               help='Output file (default: oxygen_predictions.tsv)')
+    predict_parser.add_argument('-o', '--output', default='per_aerobe_predictions.tsv',
+                               help='Output file (default: per_aerobe_predictions.tsv)')
     predict_parser.add_argument('-t', '--threads', type=int, default=4,
                                help='Number of threads (default: 4)')
     predict_parser.add_argument('-m', '--mode', choices=['modern', 'ancient', 'custom'],
