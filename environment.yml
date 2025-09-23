@@ -12,6 +12,7 @@ dependencies:
   - r-base>=4.0
   - r-mgcv
   - r-dplyr
+  - r-tidyr
   - pip
   - pip:
     - oxymetag

@@ -35,28 +35,39 @@ def get_package_data_path(filename: str) -> str:
         return str(package_dir / 'data' / filename)
 
 def run_kraken2_setup():
-    """Download and set up standard Kraken2 database"""
-    logger.info("Setting up Kraken2 standard database...")
+    """Download and set up standard Kraken2 database without fungi"""
+    logger.info("Setting up Kraken2 database (bacteria, archaea, viral)...")
     
     db_path = Path.cwd() / "kraken2_db"
     db_path.mkdir(exist_ok=True)
     
     try:
+        # Download taxonomy
         cmd = ['kraken2-build', '--download-taxonomy', '--db', str(db_path)]
+        logger.info("Downloading taxonomy...")
         subprocess.run(cmd, check=True)
         logger.info("Taxonomy downloaded successfully")
         
-        libraries = ['bacteria', 'archaea', 'viral', 'fungi']
+        # Download libraries (excluding fungi)
+        libraries = ['bacteria', 'archaea', 'viral']
         for lib in libraries:
             cmd = ['kraken2-build', '--download-library', lib, '--db', str(db_path)]
             logger.info(f"Downloading {lib} library...")
             subprocess.run(cmd, check=True)
+            logger.info(f"{lib} library downloaded successfully")
         
-        cmd = ['kraken2-build', '--build', '--db', str(db_path), '--threads', '4']
+        # Build database
+        cmd = ['kraken2-build', '--build', '--db', str(db_path), '--threads', '48']
         logger.info("Building Kraken2 database...")
         subprocess.run(cmd, check=True)
         
+        # Clean up temporary files to save space
+        cmd = ['kraken2-build', '--clean', '--db', str(db_path)]
+        logger.info("Cleaning up temporary files...")
+        subprocess.run(cmd, check=True)
+        
         logger.info(f"Kraken2 database setup complete: {db_path}")
+        logger.info("Database includes: bacteria, archaea, viral (fungi excluded)")
         
     except subprocess.CalledProcessError as e:
         raise OxyMetaGError(f"Failed to setup Kraken2 database: {e}")

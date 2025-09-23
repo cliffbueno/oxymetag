@@ -37,7 +37,7 @@ oxymetag setup
 
 ### 2. Extract bacterial reads
 ```bash
-oxymetag extract -i sample1_R1.fastq.gz sample1_R2.fastq.gz -o BactReads -t 8
+oxymetag extract -i sample1_R1.fastq.gz sample1_R2.fastq.gz -o BactReads -t 48
 ```
 
 ### 3. Profile samples
@@ -62,7 +62,7 @@ oxymetag predict -i diamond_output -o results.tsv -m custom --idcut 50 --bitcut 
 ### oxymetag setup
 **Function:** Sets up the standard Kraken2 database for taxonomic classification.
 
-**What it does:** Downloads and builds a comprehensive Kraken2 database containing bacterial, archaeal, viral, and fungal genomes. This database is used by the `extract` command to identify and isolate bacterial sequences from metagenomic samples.
+**What it does:** Downloads and builds a comprehensive Kraken2 database containing bacterial, archaeal, and viral genomes (fungi excluded). This database is used by the `extract` command to identify and isolate bacterial sequences from metagenomic samples.
 
 **Time:** 2-4 hours depending on internet speed and system performance.
 
@@ -84,7 +84,7 @@ oxymetag predict -i diamond_output -o results.tsv -m custom --idcut 50 --bitcut 
 **Arguments:**
 - `-i, --input`: Input fastq.gz files (paired-end or merged)
 - `-o, --output`: Output directory (default: BactReads)
-- `-t, --threads`: Number of threads (default: 4)
+- `-t, --threads`: Number of threads (default: 48)
 - `--kraken-db`: Kraken2 database path (default: kraken2_db)
 
 ---
@@ -187,4 +187,4 @@ GPL-3.0 License
 ## Support
 
 For questions, bug reports, or feature requests, please open an issue on GitHub:
-https://github.com/cliffbueno/OxyMetaG/issues
+https://github.com/cliffbueno/oxymetag/issues

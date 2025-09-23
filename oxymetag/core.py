@@ -19,7 +19,7 @@ class OxyMetaGError(Exception):
     pass
 
 def extract_reads(input_files: List[str], output_dir: str = "BactReads", 
-                 threads: int = 4, kraken_db: str = "kraken2_db"):
+                 threads: int = 48, kraken_db: str = "kraken2_db"):
     """
     Extract bacterial reads from metagenomic samples using Kraken2
     """

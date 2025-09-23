@@ -9,17 +9,17 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="oxymetag",
     version="1.0.0",
-    author="Clifton P. Bueno de Mesquita",  # CHANGE THIS
-    author_email="cliff.buenodemesquita@colorado.edu",  # CHANGE THIS
+    author="Clifton P. Bueno de Mesquita",i
+    author_email="cliff.buenodemesquita@colorado.edu",
     description="Oxygen metabolism profiling from metagenomic data",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/cliffbueno/OxyMetaG",  # CHANGE THIS
+    url="https://github.com/cliffbueno/oxymetag",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
