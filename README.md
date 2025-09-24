@@ -1,6 +1,6 @@
 # OxyMetaG
 
-Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG predicts the percent relative abundance of aerobic bacteria in metagenomic reads based on the ratio of abundances of a set of 20 Pfams.
+Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG predicts the percent relative abundance of aerobic bacteria in metagenomic reads based on the ratio of abundances of a set of 20 Pfams. It is recommended to use a HPC cluster or server rather than laptop to run OxyMetaG due to memory requirements, particularly for the step of extracting bacterial reads. If you already have bacterial reads, the "profile" and "predict" functions will run quickly on a laptop.
 
 ## Installation
 
@@ -30,7 +30,7 @@ pip install oxymetag
 
 ## Quick Start
 
-### 1. Setup Kraken2 database
+### 1. Setup the standard Kraken2 database
 ```bash
 oxymetag setup
 ```
@@ -62,7 +62,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 ### oxymetag setup
 **Function:** Sets up the standard Kraken2 database for taxonomic classification.
 
-**What it does:** Downloads and builds a comprehensive Kraken2 database containing bacterial, archaeal, and viral genomes (fungi excluded). This database is used by the `extract` command to identify and isolate bacterial sequences from metagenomic samples.
+**What it does:** Downloads and builds the standard Kraken2 database containing bacterial, archaeal, and viral genomes. This database is used by the `extract` command to identify bacterial sequences from metagenomic samples.
 
 **Time:** 2-4 hours depending on internet speed and system performance.
 
@@ -117,7 +117,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 2. Normalizes protein domain counts by gene length (reads per kilobase)
 3. Calculates aerobic/anaerobic domain ratios for each sample  
 4. Applies a trained GAM (Generalized Additive Model) to predict percentage of aerobes
-5. Outputs final predictions with confidence metrics
+5. Outputs a table with the sampleID, # Pfams detected, and predicted % aerobic bacteria
 
 **Input:** DIAMOND output directory from `profile` step
 **Output:** Tab-separated file with aerobe predictions for each sample
@@ -136,7 +136,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 OxyMetaG includes three pre-configured filtering modes optimized for different types of DNA:
 
 ### Modern DNA (default)
-**Best for:** Contemporary environmental samples, cultured isolates, high-quality metagenomes
+**Best for:** Modern environmental metagenomes
 - Identity ≥ 60%
 - Bitscore ≥ 50
 - E-value ≤ 0.001
@@ -178,6 +178,16 @@ If you use OxyMetaG in your research, please cite:
 ```
 Bueno de Mesquita, C.P. et al. (2025). OxyMetaG: Oxygen metabolism profiling 
 from metagenomic data using protein functional domains. 
+```
+If you use the extract function, also cite Kraken2 and KrakenTools:
+
+```
+Lu, J., Rincon, N., Wood, D.E. et al. Metagenome analysis using the Kraken software suite. Nat Protoc 17, 2815–2839 (2022). https://doi.org/10.1038/s41596-022-00738-y
+```
+If you use the profile function, also cite DIAMOND
+
+```
+Buchfink, B., Xie, C. & Huson, D. Fast and sensitive protein alignment using DIAMOND. Nat Methods 12, 59–60 (2015). https://doi.org/10.1038/nmeth.3176
 ```
 
 ## License
