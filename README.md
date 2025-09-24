@@ -4,6 +4,13 @@ Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG p
 
 ## Installation
 
+First clone the repository.
+
+```bash
+git clone https://github.com/cliffbueno/oxymetag.git
+cd oxymetag
+```
+
 ### Using Conda (Recommended)
 
 ```bash
