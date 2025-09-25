@@ -1,0 +1,21 @@
+Pfam,Oxygen,Other_Taxa
+PF00042,aerobic,"Plant, Animal"
+PF00115,aerobic,"Plant, Animal"
+PF00116,aerobic,"Plant, Animal"
+PF00296,aerobic,Archaea
+PF00510,aerobic,"Plant, Animal, Fungus"
+PF00916,aerobic,"Plant, Animal, Fungus"
+PF01152,aerobic,"Plant, Protist"
+PF01521,aerobic,"Plant, Animal, Fungus"
+PF01871,anaerobic,"Plant, Animal, Fungus"
+PF02579,anaerobic,Archaea
+PF02906,anaerobic,"Plant, Animal, Fungus"
+PF03063,anaerobic,Archaea
+PF05425,aerobic,None
+PF05721,aerobic,"Plant, Animal, Fungus"
+PF08530,aerobic,None
+PF10371,anaerobic,None
+PF13597,anaerobic,Archaea
+PF16870,aerobic,"Animal, Fungus"
+PF17773,aerobic,"Plant, Animal"
+PF17910,anaerobic,Archaea
