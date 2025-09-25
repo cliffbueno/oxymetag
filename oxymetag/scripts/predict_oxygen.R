@@ -27,7 +27,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
   
   # Load package data files (these come from oxymetag/data/)
   map_file <- file.path(package_data_dir, "pfam_headers_table.txt")
-  lengths_file <- file.path(package_data_dir, "pfam_mean_lengths.tsv")
+  lengths_file <- file.path(package_data_dir, "pfam_lengths.tsv")
   model_file <- file.path(package_data_dir, "oxygen_model.rds")
   pfams_file <- file.path(package_data_dir, "Oxygen_pfams.csv")
   
