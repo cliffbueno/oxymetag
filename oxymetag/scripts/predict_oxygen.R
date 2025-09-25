@@ -4,6 +4,7 @@
 suppressPackageStartupMessages({
   library(dplyr)
   library(tidyr)
+  library(rlang)
   library(mgcv)
 })
 

@@ -13,4 +13,5 @@ dependencies:
   - r-mgcv
   - r-dplyr
   - r-tidyr
+  - r-rlang
   - pip
