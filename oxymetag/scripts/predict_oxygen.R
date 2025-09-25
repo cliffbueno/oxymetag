@@ -28,11 +28,13 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
   map_file <- file.path(package_data_dir, "pfam_headers_table.txt")
   lengths_file <- file.path(package_data_dir, "pfam_mean_lengths.tsv")
   model_file <- file.path(package_data_dir, "oxygen_model.rds")
+  pfams_file <- file.path(package_data_dir, "Oxygen_pfams.csv")
   
   # Check if package data files exist
   if (!file.exists(map_file)) stop(paste("Package data file not found:", map_file))
   if (!file.exists(lengths_file)) stop(paste("Package data file not found:", lengths_file))
   if (!file.exists(model_file)) stop(paste("Package data file not found:", model_file))
+  if (!file.exists(pfams_file)) stop(paste("Package data file not found:", pfams_file))
   
   # Load package data
   map <- read.table(map_file, sep = "\t", header = TRUE, stringsAsFactors = FALSE, quote = "") %>%
@@ -49,6 +51,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
   oxygen_model <- readRDS(model_file)
   
   # Get aerobic and anaerobic pfam lists (you'll need to define these)
+  oxygen_pfams <- read.csv(pfams_file)
   aerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "Aerobe")
   anaerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "Anaerobe")
   
