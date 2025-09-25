@@ -91,12 +91,11 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
                 subprocess.run(['gzip', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")], check=True)
             
             logger.info(f"Bacterial reads extracted for {input_file}")
-            
+           
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to process {input_file}: {e}")
             continue
-
-
+_
 def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_output", 
                    threads: int = 4, diamond_db: str = None):
     """
@@ -118,26 +117,37 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
     input_path = Path(input_dir)
     input_files = []
     
-    for pattern in ['*_bacterial.fastq.gz', '*_R1_bacterial.fastq.gz', '*_1_bacterial.fastq.gz']:
-        input_files.extend(glob.glob(str(input_path / pattern)))
+    patterns = [
+        '*_R1_bacterial.fastq.gz',
+        '*_bacterial.fastq.gz'
+    ]
+    
+    for pattern in patterns:
+        found_files = list(input_path.glob(pattern))
+        if found_files:
+            input_files.extend(found_files)
+            logger.info(f"Found {len(found_files)} files using pattern: {pattern}")
+            break
     
     if not input_files:
+        all_files = list(input_path.glob("*.fastq.gz"))
+        logger.error(f"FASTQ files in {input_dir}: {[f.name for f in all_files[:5]]}")
         raise OxyMetaGError(f"No bacterial read files found in {input_dir}")
     
     for input_file in input_files:
-        input_path_file = Path(input_file)
-        base_name = input_path_file.stem.replace('.fastq', '').replace('.gz', '').replace('_bacterial', '')
+        base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
+        base_name = base_name.replace('_R1_bacterial', '').replace('_bacterial', '')
         
         logger.info(f"Processing {input_file}")
         
         output_file = output_path / f"{base_name}_diamond.tsv"
         
         cmd = [
-            'diamond', 'blastx', '--query', str(input_path_file),
-            '--db', diamond_db, '--out', str(output_file),
-            '--outfmt', '6', 'qseqid', 'sseqid', 'pident', 'length', 'mismatch', 
-                       'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore',
-            '--threads', str(threads), '--more-sensitive', '--max-target-seqs', '10'
+            'diamond', 'blastx',
+            '-d', diamond_db,
+            '-q', str(input_file),
+            '-o', str(output_file),
+            '-f', '6', 'qseqid', 'sseqid', 'pident', 'length', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore'
         ]
         
         try:
@@ -147,7 +157,6 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to process {input_file}: {e}")
             continue
-
 
 def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_aerobe_predictions.tsv",
                    mode: str = "modern", id_cut: float = None, bit_cut: float = None, 
