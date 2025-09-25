@@ -43,10 +43,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     select(-Junk) %>%
     filter(!duplicated(Header))
   
-  pfam_gene_length <- read.delim(lengths_file) %>%
-    separate(Pfam, sep = "-", into = c("Junk1", "Junk2", "Pfam")) %>%
-    mutate(Gene.length = MeanLength * 3) %>%
-    dplyr::select(Pfam, Gene.length)
+  pfam_gene_length <- read.delim(lengths_file)
   
   # Load the trained model and oxygen classifications
   oxygen_model <- readRDS(model_file)
