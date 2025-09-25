@@ -2,6 +2,10 @@
 
 Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG predicts the percent relative abundance of aerobic bacteria in metagenomic reads based on the ratio of abundances of a set of 20 Pfams. It is recommended to use a HPC cluster or server rather than laptop to run OxyMetaG due to memory requirements, particularly for the step of extracting bacterial reads. If you already have bacterial reads, the "profile" and "predict" functions will run quickly on a laptop.
 
+If you are working with modern metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with Kraken2 and KrakenTools, which is performed with the OxyMetaG extract function.
+
+If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterials reads with a workflow optimized for ancient DNA, such as the one employed by DeSanctis et al. 2025.
+
 ## Installation
 
 First clone the repository.
