@@ -14,5 +14,3 @@ dependencies:
   - r-dplyr
   - r-tidyr
   - pip
-  - pip:
-    - oxymetag
