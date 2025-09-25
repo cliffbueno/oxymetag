@@ -113,44 +113,40 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     
     # Count pfams
     pf_count <- as.data.frame(table(d$Pfam))
+    results$Pfams[i] <- nrow(pf_count)
     results$aerobe_pfams[i] <- sum(pf_count$Var1 %in% aerobic_pfams$Pfam)
     results$anaerobe_pfams[i] <- sum(pf_count$Var1 %in% anaerobic_pfams$Pfam)
     
     # Calculate gene hits and length correction
     gene.hits <- d %>% 
       group_by(Pfam) %>% 
-      summarise(total_count = n(), .groups = 'drop')
+      summarise(total_count = n())
     
     gene.hit.length.correction <- gene.hits %>%
-      left_join(pfam_gene_length, by = "Pfam") %>%
-      mutate(RPK = total_count / (Gene.length / 1000)) %>%
-      left_join(oxygen_pfams, by = "Pfam")
+      left_join(., pfam_gene_length, by = "Pfam") %>%
+      mutate(RPK = total_count / (1000*Gene.length)) %>%
+      left_join(., oxygen_pfams, by = "Pfam")
     
     # Sum by oxygen type
     oxygen_rpk <- gene.hit.length.correction %>%
       group_by(Oxygen) %>%
-      summarize(RPKsum = sum(RPK, na.rm = TRUE), .groups = 'drop')
+      summarize(RPKsum = sum(RPK))
     
-    # Calculate ratio (aerobe/anaerobe)
-    aerobe_rpk <- oxygen_rpk$RPKsum[oxygen_rpk$Oxygen == "Aerobe"]
-    anaerobe_rpk <- oxygen_rpk$RPKsum[oxygen_rpk$Oxygen == "Anaerobe"]
+    # Calculate the ratio and add it to the dataframe
+    results$ratio[i] <- oxygen_rpk$RPKsum[1] / oxygen_rpk$RPKsum[2]
     
-    if (length(anaerobe_rpk) == 0 || anaerobe_rpk == 0) {
-      results$ratio[i] <- ifelse(length(aerobe_rpk) > 0 && aerobe_rpk > 0, Inf, 0)
-    } else {
-      results$ratio[i] <- aerobe_rpk / anaerobe_rpk
-    }
-    
+    # Processing message
     message("Processed sample ", i, "/", length(files), ": ", sample_id)
   }
   
   # Make predictions using the GAM model
   new_data <- data.frame(ratio = results$ratio)
-  results$Per_aerobe <- predict(oxygen_model, newdata = new_data, type = "response")
+  results$Per_aerobe <- predict(oxygen_model, newdata = new_data)
   
   # Constrain predictions to 0-100% and set to 100% if ratio > 35
   results <- results %>%
-    mutate(Per_aerobe = pmax(0, pmin(100, Per_aerobe))) %>%
+    mutate(Per_aerobe = ifelse(Per_aerobe > 100, 100, Per_aerobe)) %>%
+    mutate(Per_aerobe = ifelse(Per_aerobe < 0, 0, Per_aerobe)) %>%
     mutate(Per_aerobe = ifelse(ratio > 35, 100, Per_aerobe))
   
   # Save results
