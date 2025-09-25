@@ -88,9 +88,8 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     }
     
     d <- read.table(files[i], stringsAsFactors = FALSE) %>%
-      set_names(c("qseqid", "sseqid", "pident", "length", "mismatch",
-                  "gapopen", "qstart", "qend", "sstart", "send", 
-                  "evalue", "bitscore"))
+      set_names(c("qseqid",	"sseqid",	"pident",	"length",	"qstart",	"qend",	
+                  "sstart",	"send",	"evalue",	"bitscore"))
     
     # Apply filtering based on mode
     if (mode == "modern") {
