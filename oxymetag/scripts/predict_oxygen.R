@@ -49,7 +49,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
   oxygen_model <- readRDS(model_file)
   
   # Get aerobic and anaerobic pfam lists (you'll need to define these)
-  oxygen_pfams <- read.csv(pfams_file)
+  oxygen_pfams <- read.csv(pfams_file, stringsAsFactors = FALSE)
   aerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "Aerobe")
   anaerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "Anaerobe")
   
@@ -114,8 +114,8 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     # Count pfams
     pf_count <- as.data.frame(table(d$Pfam))
     results$Pfams[i] <- nrow(pf_count)
-    results$aerobe_pfams[i] <- sum(pf_count$Var1 %in% aerobic_pfams$Pfam)
-    results$anaerobe_pfams[i] <- sum(pf_count$Var1 %in% anaerobic_pfams$Pfam)
+    results$aerobe_pfams[i] <- sum(as.character(pf_count$Var1) %in% aerobic_pfams$Pfam)
+    results$anaerobe_pfams[i] <- sum(as.character(pf_count$Var1) %in% anaerobic_pfams$Pfam)
     
     # Calculate gene hits and length correction
     gene.hits <- d %>% 
