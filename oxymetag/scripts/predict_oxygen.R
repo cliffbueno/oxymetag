@@ -50,8 +50,8 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
   
   # Get aerobic and anaerobic pfam lists (you'll need to define these)
   oxygen_pfams <- read.csv(pfams_file, stringsAsFactors = FALSE)
-  aerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "Aerobe")
-  anaerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "Anaerobe")
+  aerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "aerobic")
+  anaerobic_pfams <- oxygen_pfams %>% filter(Oxygen == "anaerobic")
   
   # Find diamond output files (user's working directory)
   files <- list.files(input_dir, pattern = "*_diamond.tsv", full.names = TRUE)
