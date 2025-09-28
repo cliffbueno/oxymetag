@@ -89,7 +89,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 2. Uses KrakenTools to extract only the reads classified as bacterial
 3. Outputs cleaned bacterial-only FASTQ files for downstream analysis
 
-**Input:** Quality filtered metagenomic read FASTQ files (paired-end or merged)
+**Input:** Quality filtered metagenomic read FASTQ files (paired-end or merged)\
 **Output:** Bacterial-only FASTQ files in `BactReads/` directory
 
 **Arguments:**
@@ -109,7 +109,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 3. Identifies protein-coding sequences and their functional annotations
 4. Creates detailed hit tables for each sample
 
-**Input:** Bacterial FASTQ files (uses R1 or merged reads only)
+**Input:** Bacterial FASTQ files (uses R1 or merged reads only)\
 **Output:** DIAMOND alignment files (TSV format) in `diamond_output/` directory
 
 **Arguments:**
