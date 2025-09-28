@@ -130,7 +130,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 4. Applies a trained GAM (Generalized Additive Model) to predict percentage of aerobes
 5. Outputs a table with the sampleID, # Pfams detected, and predicted % aerobic bacteria
 
-**Input:** DIAMOND output directory from `profile` step
+**Input:** DIAMOND output directory from `profile` step\
 **Output:** Tab-separated file with aerobe predictions for each sample
 
 **Arguments:**
