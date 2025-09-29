@@ -72,19 +72,20 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
             
             bacterial_reads = output_path / f"{base_name}_bacterial.fastq"
             
-            extract_script = "extract_kraken_reads.py"
-            
-            cmd = [
-                'python', extract_script, '-k', str(kraken_output),
-                '-s', str(input_path), '-o', str(bacterial_reads),
-                '--taxid', '2', '--include-children'
-            ]
-            
-            if '_R1' in base_name and Path(r2_file).exists():
-                cmd.extend(['-s2', r2_file])
-                cmd.extend(['-o2', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")])
-            
-            subprocess.run(cmd, check=True)
+cmd = [
+    'extract_kraken_reads.py',
+    '-k', str(kraken_output),
+    '-s', str(input_path),
+    '-o', str(bacterial_reads),
+    '--taxid', '2',
+    '--include-children'
+]
+
+if '_R1' in base_name and Path(r2_file).exists():
+    cmd.extend(['-s2', r2_file])
+    cmd.extend(['-o2', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")])
+
+			subprocess.run(cmd, check=True)
             subprocess.run(['gzip', str(bacterial_reads)], check=True)
             
             if '_R1' in base_name and Path(r2_file).exists():
