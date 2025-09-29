@@ -4,7 +4,7 @@ Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG p
 
 If you are working with modern metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with Kraken2 and KrakenTools, which is performed with the OxyMetaG extract function.
 
-If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterials reads with a workflow optimized for ancient DNA, such as the one employed by DeSanctis et al. 2025.
+If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the one employed by De Sanctis et al. (2025).
 
 ## Installation
 
@@ -89,7 +89,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 2. Uses KrakenTools to extract only the reads classified as bacterial
 3. Outputs cleaned bacterial-only FASTQ files for downstream analysis
 
-**Input:** Raw metagenomic FASTQ files (paired-end or merged)
+**Input:** Quality filtered metagenomic read FASTQ files (paired-end or merged)\
 **Output:** Bacterial-only FASTQ files in `BactReads/` directory
 
 **Arguments:**
@@ -109,7 +109,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 3. Identifies protein-coding sequences and their functional annotations
 4. Creates detailed hit tables for each sample
 
-**Input:** Bacterial FASTQ files (uses R1 or merged reads only)
+**Input:** Bacterial FASTQ files (uses R1 or merged reads only)\
 **Output:** DIAMOND alignment files (TSV format) in `diamond_output/` directory
 
 **Arguments:**
@@ -130,7 +130,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 4. Applies a trained GAM (Generalized Additive Model) to predict percentage of aerobes
 5. Outputs a table with the sampleID, # Pfams detected, and predicted % aerobic bacteria
 
-**Input:** DIAMOND output directory from `profile` step
+**Input:** DIAMOND output directory from `profile` step\
 **Output:** Tab-separated file with aerobe predictions for each sample
 
 **Arguments:**
