@@ -81,6 +81,10 @@ cmd = [
     '--include-children'
 ]
 
+except subprocess.CalledProcessError as e:
+    logger.error(f"Failed to process {input_file}: {e}")
+    continue
+
 if '_R1' in base_name and Path(r2_file).exists():
     cmd.extend(['-s2', r2_file])
     cmd.extend(['-o2', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")])
