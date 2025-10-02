@@ -72,35 +72,32 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
             
             bacterial_reads = output_path / f"{base_name}_bacterial.fastq"
             
-cmd = [
-    'extract_kraken_reads.py',
-    '-k', str(kraken_output),
-    '-s', str(input_path),
-    '-o', str(bacterial_reads),
-    '--taxid', '2',
-    '--include-children'
-]
-
-except subprocess.CalledProcessError as e:
-    logger.error(f"Failed to process {input_file}: {e}")
-    continue
-
-if '_R1' in base_name and Path(r2_file).exists():
-    cmd.extend(['-s2', r2_file])
-    cmd.extend(['-o2', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")])
-
-			subprocess.run(cmd, check=True)
+            cmd = [
+                'extract_kraken_reads.py',
+                '-k', str(kraken_output),
+                '-s', str(input_path),
+                '-o', str(bacterial_reads),
+                '--taxid', '2',
+                '--include-children'
+            ]
+            
+            if '_R1' in base_name and Path(r2_file).exists():
+                cmd.extend(['-s2', r2_file])
+                cmd.extend(['-o2', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")])
+            
+            subprocess.run(cmd, check=True)
             subprocess.run(['gzip', str(bacterial_reads)], check=True)
             
             if '_R1' in base_name and Path(r2_file).exists():
                 subprocess.run(['gzip', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")], check=True)
             
             logger.info(f"Bacterial reads extracted for {input_file}")
-           
+            
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to process {input_file}: {e}")
             continue
-_
+
+
 def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_output", 
                    threads: int = 4, diamond_db: str = None):
     """
@@ -163,6 +160,7 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
             logger.error(f"Failed to process {input_file}: {e}")
             continue
 
+
 def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_aerobe_predictions.tsv",
                    mode: str = "modern", id_cut: float = None, bit_cut: float = None, 
                    e_cut: float = None, threads: int = 4):
@@ -173,7 +171,6 @@ def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_a
     
     logger.info(f"Starting aerobe level prediction in {mode} mode")
     
-    # Set cutoffs based on mode
     if mode == "modern":
         identity_cutoff, bitscore_cutoff, evalue_cutoff = 60.0, 50.0, 0.001
     elif mode == "ancient":
@@ -185,17 +182,12 @@ def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_a
     else:
         raise OxyMetaGError("Mode must be 'modern', 'ancient', or 'custom'")
     
-    # Get package data directory
     package_data_dir = str(Path(get_package_data_path("")).parent / "data")
-    
-    # Get R script path
     r_script_path = get_package_data_path("../scripts/predict_oxygen.R")
     
-    # Check if input directory exists
     if not Path(input_dir).exists():
         raise OxyMetaGError(f"Input directory not found: {input_dir}")
     
-    # Call R script
     cmd = [
         'Rscript', r_script_path,
         input_dir, output_file, package_data_dir, mode,
@@ -215,7 +207,6 @@ def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_a
             logger.error(f"R stderr: {e.stderr}")
         raise OxyMetaGError(f"Aerobe prediction failed: {e}")
     
-    # Read and return results
     if Path(output_file).exists():
         results_df = pd.read_csv(output_file, sep='\t')
         logger.info(f"Results saved to {output_file}")
