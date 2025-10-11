@@ -41,8 +41,13 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
         
         base_name = input_path.stem.replace('.fastq', '').replace('.gz', '')
         
-        kraken_output = output_path / f"{base_name}_kraken.out"
-        kraken_report = output_path / f"{base_name}_report.txt"
+        if '_R1' in base_name or '_1' in base_name:
+            kraken_base = base_name.replace('_R1', '').replace('_1', '')
+        else:
+            kraken_base = base_name
+        
+        kraken_output = output_path / f"{kraken_base}_kraken.out"
+        kraken_report = output_path / f"{kraken_base}_report.txt"
         
         if '_R1' in base_name or '_1' in base_name:
             r2_file = str(input_path).replace('_R1', '_R2').replace('_1', '_2')
@@ -77,19 +82,24 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
                 '-k', str(kraken_output),
                 '-s', str(input_path),
                 '-o', str(bacterial_reads),
+                '-r', str(kraken_report),
                 '--taxid', '2',
                 '--include-children'
             ]
             
-            if '_R1' in base_name and Path(r2_file).exists():
+            if ('_R1' in base_name or '_1' in base_name) and Path(r2_file).exists():
+                if '_R1' in base_name:
+                    r2_output = output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq"
+                else:
+                    r2_output = output_path / f"{base_name.replace('_1', '_2')}_bacterial.fastq"
                 cmd.extend(['-s2', r2_file])
-                cmd.extend(['-o2', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")])
+                cmd.extend(['-o2', str(r2_output)])
             
             subprocess.run(cmd, check=True)
             subprocess.run(['gzip', str(bacterial_reads)], check=True)
             
-            if '_R1' in base_name and Path(r2_file).exists():
-                subprocess.run(['gzip', str(output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq")], check=True)
+            if ('_R1' in base_name or '_1' in base_name) and Path(r2_file).exists():
+                subprocess.run(['gzip', str(r2_output)], check=True)
             
             logger.info(f"Bacterial reads extracted for {input_file}")
             
@@ -121,6 +131,7 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
     
     patterns = [
         '*_R1_bacterial.fastq.gz',
+        '*_1_bacterial.fastq.gz',
         '*_bacterial.fastq.gz'
     ]
     
@@ -138,7 +149,7 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
     
     for input_file in input_files:
         base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
-        base_name = base_name.replace('_R1_bacterial', '').replace('_bacterial', '')
+        base_name = base_name.replace('_R1_bacterial', '').replace('_1_bacterial', '').replace('_bacterial', '')
         
         logger.info(f"Processing {input_file}")
         
