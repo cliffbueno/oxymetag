@@ -189,8 +189,7 @@ The `Per_aerobe` value represents the predicted percentage of aerobic bacteria i
 If you use OxyMetaG in your research, please cite:
 
 ```
-Bueno de Mesquita, C.P. et al. (2025). OxyMetaG: Oxygen metabolism profiling 
-from metagenomic data using protein functional domains. 
+Bueno de Mesquita, C.P., Stallard-Olivera, E., Fierer, N. (2025). Bueno de Mesquita, C.P. et al. (2025). Predicting the proportion of aerobic and anaerobic bacteria from metagenomic reads with OxyMetaG. 
 ```
 If you use the extract function, also cite Kraken2 and KrakenTools:
 
