@@ -77,7 +77,9 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 
 **Time:** 2-4 hours depending on internet speed and system performance.
 
-**Output:** Creates a `kraken2_db/` directory with the complete database.
+**Output:** Creates a `kraken2_db/` directory with the standard database.
+
+Make sure you run oxymetag setup from the directory where you want the database to live, or plan to always specify the --kraken-db path when running extract. The database is quite large (~50-100 GB), so choose a location with sufficient storage.
 
 ---
 
