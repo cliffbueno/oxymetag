@@ -4,7 +4,7 @@ Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG p
 
 If you are working with modern metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with Kraken2 and KrakenTools, which is performed with the OxyMetaG extract function.
 
-If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the read mapping based approach employed by De Sanctis et al. (2025).
+If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the read mapping approach employed by De Sanctis et al. (2025).
 
 ## Installation
 
