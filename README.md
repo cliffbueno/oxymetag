@@ -4,7 +4,7 @@ Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG p
 
 If you are working with modern metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with Kraken2 and KrakenTools, which is performed with the OxyMetaG extract function.
 
-If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the one employed by De Sanctis et al. (2025).
+If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the read mapping based approach employed by De Sanctis et al. (2025).
 
 ## Installation
 
@@ -75,11 +75,11 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m custom --idc
 
 **What it does:** Downloads and builds the standard Kraken2 database containing bacterial, archaeal, and viral genomes. This database is used by the `extract` command to identify bacterial sequences from metagenomic samples.
 
-**Time:** 2-4 hours depending on internet speed and system performance.
+**Time:** Depends on internet speed and system performance, but will likely take several hours. 
 
 **Output:** Creates a `kraken2_db/` directory with the standard database.
 
-Make sure you run oxymetag setup from the directory where you want the database to live, or plan to always specify the --kraken-db path when running extract. The database is quite large (~50-100 GB), so choose a location with sufficient storage.
+Make sure you run oxymetag setup from the directory where you want the database to live, or plan to always specify the --kraken-db path when running extract. The database is quite large (90 Gb), so choose a location with sufficient storage.
 
 ---
 
