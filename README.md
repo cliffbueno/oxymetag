@@ -186,7 +186,7 @@ The `Per_aerobe` value represents the predicted percentage of aerobic bacteria i
 
 ## Citation
 
-If you use OxyMetaG in your research, please cite:
+If you use OxyMetaG in your research, please cite the OxyMetaG paper (will be submitted for review soon and up on bioRxiv soon!):
 
 ```
 Bueno de Mesquita, C.P., Stallard-Olivera, E., Fierer, N. (2025). Predicting the proportion of aerobic and anaerobic bacteria from metagenomic reads with OxyMetaG. 
