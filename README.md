@@ -146,7 +146,7 @@ Make sure you run oxymetag setup from the directory where you want the database 
 
 ## Filtering Modes
 
-OxyMetaG includes three pre-configured filtering modes optimized for different types of DNA:
+OxyMetaG includes three pre-configured filtering modes optimized for different types of DNA. In any case, it is always recommended to try several different parameters (using -m custom) to check how sensitive the results are to the cutoffs.
 
 ### Modern DNA (default)
 **Best for:** Modern environmental metagenomes
@@ -154,7 +154,7 @@ OxyMetaG includes three pre-configured filtering modes optimized for different t
 - Bitscore ≥ 50
 - E-value ≤ 0.001
 
-### Ancient DNA  
+### Ancient DNA (Warning! Not yet optimized)  
 **Best for:** Archaeological samples, paleogenomic data, degraded environmental DNA
 - Identity ≥ 45% (accounts for DNA damage)
 - Bitscore ≥ 25 (accommodates shorter fragments)
