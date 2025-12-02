@@ -11,7 +11,6 @@ from . import __version__
 from .core import extract_reads, profile_samples, predict_aerobes
 from .utils import check_dependencies, run_kraken2_setup, OxyMetaGError
 
-# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -29,10 +28,8 @@ def main():
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
-    # Setup command
     setup_parser = subparsers.add_parser('setup', help='Setup Kraken2 database')
     
-    # Extract command
     extract_parser = subparsers.add_parser('extract', help='Extract bacterial reads')
     extract_parser.add_argument('-i', '--input', nargs='+', required=True,
                                help='Input fastq.gz files')
@@ -43,27 +40,33 @@ def main():
     extract_parser.add_argument('--kraken-db', default='kraken2_db',
                                help='Kraken2 database path (default: kraken2_db)')
     
-    # Profile command  
-    profile_parser = subparsers.add_parser('profile', help='Profile samples with DIAMOND')
+    profile_parser = subparsers.add_parser('profile', help='Profile samples with DIAMOND or MMseqs2')
     profile_parser.add_argument('-i', '--input', default='BactReads',
                                help='Input directory (default: BactReads)')
-    profile_parser.add_argument('-o', '--output', default='diamond_output',
-                               help='Output directory (default: diamond_output)')
+    profile_parser.add_argument('-o', '--output', default=None,
+                               help='Output directory (default: diamond_output or mmseqs_output)')
     profile_parser.add_argument('-t', '--threads', type=int, default=4,
                                help='Number of threads (default: 4)')
+    profile_parser.add_argument('-m', '--method', choices=['diamond', 'mmseqs2'],
+                               default='diamond',
+                               help='Profiling method (default: diamond)')
     profile_parser.add_argument('--diamond-db',
                                help='DIAMOND database path (default: package database)')
+    profile_parser.add_argument('--mmseqs-db',
+                               help='MMseqs2 database path (default: package database)')
     
-    # Predict command
     predict_parser = subparsers.add_parser('predict', help='Predict aerobe levels')
-    predict_parser.add_argument('-i', '--input', default='diamond_output',
-                               help='Input directory (default: diamond_output)')
+    predict_parser.add_argument('-i', '--input', default=None,
+                               help='Input directory (default: diamond_output or mmseqs_output)')
     predict_parser.add_argument('-o', '--output', default='per_aerobe_predictions.tsv',
                                help='Output file (default: per_aerobe_predictions.tsv)')
     predict_parser.add_argument('-t', '--threads', type=int, default=4,
                                help='Number of threads (default: 4)')
     predict_parser.add_argument('-m', '--mode', choices=['modern', 'ancient', 'custom'],
                                default='modern', help='Filtering mode (default: modern)')
+    predict_parser.add_argument('--method', choices=['diamond', 'mmseqs2'],
+                               default='diamond',
+                               help='Method used for profiling (default: diamond)')
     predict_parser.add_argument('--idcut', type=float,
                                help='Custom identity cutoff (for custom mode)')
     predict_parser.add_argument('--bitcut', type=float,
@@ -87,11 +90,12 @@ def main():
             extract_reads(args.input, args.output, args.threads, args.kraken_db)
             
         elif args.command == 'profile':
-            profile_samples(args.input, args.output, args.threads, args.diamond_db)
+            profile_samples(args.input, args.output, args.threads, args.method,
+                          args.diamond_db, args.mmseqs_db)
             
         elif args.command == 'predict':
-            predict_aerobes(args.input, args.output, args.mode,
-                           args.idcut, args.bitcut, args.ecut, args.threads)
+            predict_aerobes(args.input, args.output, args.mode, args.method,
+                          args.idcut, args.bitcut, args.ecut, args.threads)
         
         logger.info("Command completed successfully")
         

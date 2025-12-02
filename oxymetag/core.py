@@ -108,20 +108,18 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
             continue
 
 
-def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_output", 
-                   threads: int = 4, diamond_db: str = None):
+def profile_samples(input_dir: str = "BactReads", output_dir: str = None, 
+                   threads: int = 4, method: str = "diamond",
+                   diamond_db: str = None, mmseqs_db: str = None):
     """
-    Profile samples using DIAMOND blastx against Pfam database
+    Profile samples using DIAMOND or MMseqs2 against Pfam database
     """
     from .utils import get_package_data_path
     
-    logger.info(f"Starting sample profiling with {threads} threads")
+    logger.info(f"Starting sample profiling with {method} using {threads} threads")
     
-    if diamond_db is None:
-        diamond_db = get_package_data_path("oxymetag_pfams.dmnd")
-    
-    if not Path(diamond_db).exists():
-        raise OxyMetaGError(f"DIAMOND database not found: {diamond_db}")
+    if output_dir is None:
+        output_dir = 'diamond_output' if method == 'diamond' else 'mmseqs_output'
     
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True)
@@ -146,6 +144,25 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
         all_files = list(input_path.glob("*.fastq.gz"))
         logger.error(f"FASTQ files in {input_dir}: {[f.name for f in all_files[:5]]}")
         raise OxyMetaGError(f"No bacterial read files found in {input_dir}")
+    
+    if method == 'diamond':
+        _profile_with_diamond(input_files, output_path, threads, diamond_db)
+    elif method == 'mmseqs2':
+        _profile_with_mmseqs(input_files, output_path, threads, mmseqs_db)
+    else:
+        raise OxyMetaGError(f"Unknown method: {method}")
+
+
+def _profile_with_diamond(input_files: List[Path], output_path: Path, 
+                         threads: int, diamond_db: str = None):
+    """Profile samples using DIAMOND blastx"""
+    from .utils import get_package_data_path
+    
+    if diamond_db is None:
+        diamond_db = get_package_data_path("oxymetag_pfams.dmnd")
+    
+    if not Path(diamond_db).exists():
+        raise OxyMetaGError(f"DIAMOND database not found: {diamond_db}")
     
     for input_file in input_files:
         base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
@@ -172,15 +189,86 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = "diamond_out
             continue
 
 
-def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_aerobe_predictions.tsv",
-                   mode: str = "modern", id_cut: float = None, bit_cut: float = None, 
+def _profile_with_mmseqs(input_files: List[Path], output_path: Path,
+                        threads: int, mmseqs_db: str = None):
+    """Profile samples using MMseqs2 easy-search"""
+    from .utils import get_package_data_path
+    
+    if mmseqs_db is None:
+        mmseqs_db = get_package_data_path("oxymetag_pfams_n117_db")
+    
+    if not Path(mmseqs_db).exists():
+        raise OxyMetaGError(f"MMseqs2 database not found: {mmseqs_db}")
+    
+    data_dir = Path(get_package_data_path(""))
+    vtml_matrix = data_dir / "VTML20.out"
+    nucl_matrix = data_dir / "nucleotide.out"
+    
+    if not vtml_matrix.exists():
+        raise OxyMetaGError(f"VTML20.out matrix not found: {vtml_matrix}")
+    if not nucl_matrix.exists():
+        raise OxyMetaGError(f"nucleotide.out matrix not found: {nucl_matrix}")
+    
+    for input_file in input_files:
+        base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
+        base_name = base_name.replace('_R1_bacterial', '').replace('_1_bacterial', '').replace('_bacterial', '')
+        
+        logger.info(f"Processing {input_file} with MMseqs2")
+        
+        output_file = output_path / f"{base_name}_mmseqs.tsv"
+        tmp_dir = output_path / f"{base_name}_tmp"
+        tmp_dir.mkdir(exist_ok=True)
+        
+        cmd = [
+            'mmseqs', 'easy-search',
+            str(input_file),
+            str(mmseqs_db),
+            str(output_file),
+            str(tmp_dir),
+            '--min-length', '12',
+            '-e', '10.0',
+            '--min-seq-id', '0.86',
+            '-c', '0.65',
+            '--cov-mode', '2',
+            '--format-mode', '0',
+            '--format-output', 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,qlen,tlen,cigar,qaln,taln',
+            '--comp-bias-corr', '0',
+            '--mask', '0',
+            '--exact-kmer-matching', '1',
+            '--sub-mat', f'aa:{vtml_matrix},nucl:{nucl_matrix}',
+            '--seed-sub-mat', f'aa:{vtml_matrix},nucl:{nucl_matrix}',
+            '-s', '2',
+            '-k', '6',
+            '--spaced-kmer-pattern', '11011101',
+            '--max-seqs', '10000',
+            '--max-rejected', '10',
+            '--threads', str(threads),
+            '--remove-tmp-files', '0',
+            '--use-all-table-starts', '1'
+        ]
+        
+        try:
+            subprocess.run(cmd, check=True)
+            logger.info(f"MMseqs2 profiling completed for {input_file}")
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to process {input_file}: {e}")
+            continue
+
+
+def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predictions.tsv",
+                   mode: str = "modern", method: str = "diamond",
+                   id_cut: float = None, bit_cut: float = None, 
                    e_cut: float = None, threads: int = 4):
     """
-    Predict aerobe levels from DIAMOND results
+    Predict aerobe levels from DIAMOND or MMseqs2 results
     """
     from .utils import get_package_data_path
     
-    logger.info(f"Starting aerobe level prediction in {mode} mode")
+    logger.info(f"Starting aerobe level prediction in {mode} mode using {method} results")
+    
+    if input_dir is None:
+        input_dir = 'diamond_output' if method == 'diamond' else 'mmseqs_output'
     
     if mode == "modern":
         identity_cutoff, bitscore_cutoff, evalue_cutoff = 60.0, 50.0, 0.001
@@ -201,7 +289,7 @@ def predict_aerobes(input_dir: str = "diamond_output", output_file: str = "per_a
     
     cmd = [
         'Rscript', r_script_path,
-        input_dir, output_file, package_data_dir, mode,
+        input_dir, output_file, package_data_dir, mode, method,
         str(identity_cutoff), str(evalue_cutoff), str(bitscore_cutoff)
     ]
     
