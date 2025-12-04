@@ -130,6 +130,8 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = None,
     patterns = [
         '*_R1_bacterial.fastq.gz',
         '*_1_bacterial.fastq.gz',
+        '*_bacterial_R1.fastq.gz',
+        '*_bacterial_1.fastq.gz',
         '*_bacterial.fastq.gz'
     ]
     
@@ -166,7 +168,11 @@ def _profile_with_diamond(input_files: List[Path], output_path: Path,
     
     for input_file in input_files:
         base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
-        base_name = base_name.replace('_R1_bacterial', '').replace('_1_bacterial', '').replace('_bacterial', '')
+        base_name = (base_name.replace('_R1_bacterial', '')
+                             .replace('_1_bacterial', '')
+                             .replace('_bacterial_R1', '')
+                             .replace('_bacterial_1', '')
+                             .replace('_bacterial', ''))
         
         logger.info(f"Processing {input_file}")
         
@@ -211,7 +217,11 @@ def _profile_with_mmseqs(input_files: List[Path], output_path: Path,
     
     for input_file in input_files:
         base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
-        base_name = base_name.replace('_R1_bacterial', '').replace('_1_bacterial', '').replace('_bacterial', '')
+        base_name = (base_name.replace('_R1_bacterial', '')
+                             .replace('_1_bacterial', '')
+                             .replace('_bacterial_R1', '')
+                             .replace('_bacterial_1', '')
+                             .replace('_bacterial', ''))
         
         logger.info(f"Processing {input_file} with MMseqs2")
         
@@ -257,23 +267,23 @@ def _profile_with_mmseqs(input_files: List[Path], output_path: Path,
 
 
 def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predictions.tsv",
-                   mode: str = "modern", method: str = "diamond",
-                   id_cut: float = None, bit_cut: float = None, 
+                   mode: str = "modern", id_cut: float = None, bit_cut: float = None, 
                    e_cut: float = None, threads: int = 4):
     """
     Predict aerobe levels from DIAMOND or MMseqs2 results
+    Mode determines method: modern=DIAMOND, ancient=MMseqs2
     """
     from .utils import get_package_data_path
     
-    logger.info(f"Starting aerobe level prediction in {mode} mode using {method} results")
+    logger.info(f"Starting aerobe level prediction in {mode} mode")
     
     if input_dir is None:
-        input_dir = 'diamond_output' if method == 'diamond' else 'mmseqs_output'
+        input_dir = 'diamond_output' if mode == 'modern' else 'mmseqs_output'
     
     if mode == "modern":
         identity_cutoff, bitscore_cutoff, evalue_cutoff = 60.0, 50.0, 0.001
     elif mode == "ancient":
-        identity_cutoff, bitscore_cutoff, evalue_cutoff = 45.0, 25.0, 0.1
+        identity_cutoff, bitscore_cutoff, evalue_cutoff = 86.0, 50.0, 0.001
     elif mode == "custom":
         if any(x is None for x in [id_cut, bit_cut, e_cut]):
             raise OxyMetaGError("Custom mode requires id_cut, bit_cut, and e_cut parameters")
@@ -282,14 +292,15 @@ def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predic
         raise OxyMetaGError("Mode must be 'modern', 'ancient', or 'custom'")
     
     package_data_dir = str(Path(get_package_data_path("")).parent / "data")
-    r_script_path = get_package_data_path("../scripts/predict_oxygen.R")
+    package_base = Path(__file__).parent
+    r_script_path = str(package_base / "scripts" / "predict_oxygen.R")
     
     if not Path(input_dir).exists():
         raise OxyMetaGError(f"Input directory not found: {input_dir}")
     
     cmd = [
         'Rscript', r_script_path,
-        input_dir, output_file, package_data_dir, mode, method,
+        input_dir, output_file, package_data_dir, mode,
         str(identity_cutoff), str(evalue_cutoff), str(bitscore_cutoff)
     ]
     

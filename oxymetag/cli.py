@@ -57,16 +57,14 @@ def main():
     
     predict_parser = subparsers.add_parser('predict', help='Predict aerobe levels')
     predict_parser.add_argument('-i', '--input', default=None,
-                               help='Input directory (default: diamond_output or mmseqs_output)')
+                               help='Input directory (default: diamond_output for modern, mmseqs_output for ancient)')
     predict_parser.add_argument('-o', '--output', default='per_aerobe_predictions.tsv',
                                help='Output file (default: per_aerobe_predictions.tsv)')
     predict_parser.add_argument('-t', '--threads', type=int, default=4,
                                help='Number of threads (default: 4)')
     predict_parser.add_argument('-m', '--mode', choices=['modern', 'ancient', 'custom'],
-                               default='modern', help='Filtering mode (default: modern)')
-    predict_parser.add_argument('--method', choices=['diamond', 'mmseqs2'],
-                               default='diamond',
-                               help='Method used for profiling (default: diamond)')
+                               default='modern', 
+                               help='Filtering mode: modern=DIAMOND, ancient=MMseqs2 (default: modern)')
     predict_parser.add_argument('--idcut', type=float,
                                help='Custom identity cutoff (for custom mode)')
     predict_parser.add_argument('--bitcut', type=float,
@@ -94,7 +92,7 @@ def main():
                           args.diamond_db, args.mmseqs_db)
             
         elif args.command == 'predict':
-            predict_aerobes(args.input, args.output, args.mode, args.method,
+            predict_aerobes(args.input, args.output, args.mode,
                           args.idcut, args.bitcut, args.ecut, args.threads)
         
         logger.info("Command completed successfully")
