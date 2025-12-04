@@ -2,9 +2,9 @@
 
 Oxygen metabolism profiling from metagenomic data using Pfam domains. OxyMetaG predicts the percent relative abundance of aerobic bacteria in metagenomic reads based on the ratio of abundances of a set of 20 Pfams. It is recommended to use a HPC cluster or server rather than laptop to run OxyMetaG due to memory requirements, particularly for the step of extracting bacterial reads. If you already have bacterial reads, the "profile" and "predict" functions will run quickly on a laptop.
 
-If you are working with modern metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with Kraken2 and KrakenTools, which is performed with the OxyMetaG extract function. For profiling modern metagenomes, use DIAMOND blastx with the default `-m modern` mode for the predict step.
+If you are working with modern metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with Kraken2 and KrakenTools, which is performed with the OxyMetaG extract function. For profiling modern metagenomes, use DIAMOND blastx with the default `-m diamond` mode for the profile step. You can also use `-m custom` in the predict step to test different hit cutoffs.
 
-If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the read mapping approach employed by De Sanctis et al. (2025). For profiling ancient metagenomes, use MMseqs2 with `-m mmseqs2` for the profile step and `-m ancient` for the predict step. The ancient mode uses parameters optimized for ancient DNA along with 97 decoy Pfams to reduce instances of false positives.
+If you are working with ancient metagenomes, we recommend first quality filtering the raw reads with your method of choice and standard practices, and then extracting bacterial reads with a workflow optimized for ancient DNA, such as the read mapping approach employed by De Sanctis et al. (2025). For profiling ancient metagenomes, use MMseqs2 with `-m mmseqs2` for the profile step and `-m ancient` for the predict step. The ancient mode uses parameters optimized for ancient DNA along with 97 decoy Pfams to reduce instances of false positives. We are still working on optimizing the methods for ancient DNA, which will be released as v2.0.0. 
 
 ## Installation
 
@@ -66,8 +66,7 @@ oxymetag predict -i diamond_output -o per_aerobe_predictions.tsv -m modern
 ### Ancient DNA workflow
 
 ```bash
-# 1. Extract bacterial reads (use ancient DNA-optimized workflow if available)
-# If using oxymetag extract, same as modern workflow
+# 1. Extract bacterial reads with an ancient DNA-optimized workflow (not currently provided by OxyMetaG)
 
 # 2. Profile samples with MMseqs2
 oxymetag profile -i BactReads -o mmseqs_output -m mmseqs2 -t 8
