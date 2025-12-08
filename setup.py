@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="oxymetag",
-    version="1.1.1",
+    version="1.1.2",
     author="Clifton P. Bueno de Mesquita",
     author_email="cliff.buenodemesquita@colorado.edu",
     description="Oxygen metabolism profiling from metagenomic data",

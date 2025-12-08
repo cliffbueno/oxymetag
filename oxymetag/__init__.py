@@ -2,7 +2,7 @@
 OxyMetaG: Oxygen metabolism profiling from metagenomic data
 """
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __author__ = "Clifton P. Bueno de Mesquita"
 __email__ = "cliff.buenodemesquita@colorado.edu"
 
