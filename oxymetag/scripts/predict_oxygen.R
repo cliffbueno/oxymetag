@@ -167,7 +167,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     
     gene.hit.length.correction <- gene.hits %>%
       left_join(pfam_gene_length, by = "Pfam") %>%
-      mutate(RPK = total_count / (1000 * Gene.length)) %>%
+      mutate(RPK = total_count / (Gene.length/1000)) %>%
       left_join(oxygen_pfams, by = "Pfam")
     
     # Sum by oxygen type
