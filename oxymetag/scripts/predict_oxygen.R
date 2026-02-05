@@ -180,7 +180,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     anaerobe_rpk <- oxygen_rpk$RPKsum[oxygen_rpk$Oxygen == "anaerobic"]
     
     if (length(anaerobe_rpk) == 0 || anaerobe_rpk == 0) {
-      results$ratio[i] <- ifelse(length(aerobe_rpk) > 0 && aerobe_rpk > 0, Inf, 0)
+      results$ratio[i] <- ifelse(length(aerobe_rpk) > 0 && aerobe_rpk > 0, Inf, NA)
     } else {
       results$ratio[i] <- aerobe_rpk / anaerobe_rpk
     }
@@ -188,11 +188,18 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     message("Processed sample ", i, "/", length(files), ": ", sample_id)
   }
   
-  # Make predictions using the GAM model
+  # Make predictions using the GAM model, ratio NA are Per_anaerobe NA
+  results <- results %>%
+    mutate(ratio = ifelse(is.infinite(ratio), NA, ratio))
   new_data <- data.frame(ratio = results$ratio)
-  results$Per_aerobe <- predict(oxygen_model, newdata = new_data, type = "response")
+  results$Per_aerobe <- predict(oxygen_model, 
+                                newdata = new_data, 
+                                type = "response",
+                                na.action = na.exclude)
   
   # Constrain predictions to 0-100% and set to 100% if ratio > 35
+  # If NA, that means there were 0 aerobe or anaerobe genes found
+  # You can look at the gene counts to learn something about oxygen, but not calculate the Per_aerobe
   results <- results %>%
     mutate(Per_aerobe = pmax(0, pmin(100, Per_aerobe))) %>%
     mutate(Per_aerobe = ifelse(ratio > 35, 100, Per_aerobe))
