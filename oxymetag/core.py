@@ -132,7 +132,42 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = None,
         '*_1_bacterial.fastq.gz',
         '*_bacterial_R1.fastq.gz',
         '*_bacterial_1.fastq.gz',
-        '*_bacterial.fastq.gz'
+        '*_bacterial.fastq.gz',
+        '*_R1_bacterial.fastq',
+        '*_1_bacterial.fastq',
+        '*_bacterial_R1.fastq',
+        '*_bacterial_1.fastq',
+        '*_bacterial.fastq',
+        '*_R1_bacterial.fq.gz',
+        '*_1_bacterial.fq.gz',
+        '*_bacterial_R1.fq.gz',
+        '*_bacterial_1.fq.gz',
+        '*_bacterial.fq.gz',
+        '*_R1_bacterial.fq',
+        '*_1_bacterial.fq',
+        '*_bacterial_R1.fq',
+        '*_bacterial_1.fq',
+        '*_bacterial.fq',
+        '*_R1_bacterial.fasta.gz',
+        '*_1_bacterial.fasta.gz',
+        '*_bacterial_R1.fasta.gz',
+        '*_bacterial_1.fasta.gz',
+        '*_bacterial.fasta.gz',
+        '*_R1_bacterial.fa.gz',
+        '*_1_bacterial.fa.gz',
+        '*_bacterial_R1.fa.gz',
+        '*_bacterial_1.fa.gz',
+        '*_bacterial.fa.gz',
+        '*_R1_bacterial.fasta',
+        '*_1_bacterial.fasta',
+        '*_bacterial_R1.fasta',
+        '*_bacterial_1.fasta',
+        '*_bacterial.fasta',
+        '*_R1_bacterial.fa',
+        '*_1_bacterial.fa',
+        '*_bacterial_R1.fa',
+        '*_bacterial_1.fa',
+        '*_bacterial.fa'
     ]
     
     for pattern in patterns:
@@ -143,8 +178,8 @@ def profile_samples(input_dir: str = "BactReads", output_dir: str = None,
             break
     
     if not input_files:
-        all_files = list(input_path.glob("*.fastq.gz"))
-        logger.error(f"FASTQ files in {input_dir}: {[f.name for f in all_files[:5]]}")
+        all_files = list(input_path.glob("*.fastq.gz")) + list(input_path.glob("*.fasta.gz")) + list(input_path.glob("*.fa.gz"))
+        logger.error(f"Read files in {input_dir}: {[f.name for f in all_files[:5]]}")
         raise OxyMetaGError(f"No bacterial read files found in {input_dir}")
     
     if method == 'diamond':
@@ -167,7 +202,7 @@ def _profile_with_diamond(input_files: List[Path], output_path: Path,
         raise OxyMetaGError(f"DIAMOND database not found: {diamond_db}")
     
     for input_file in input_files:
-        base_name = input_file.stem.replace('.fastq', '').replace('.gz', '')
+        base_name = input_file.stem.replace('.fastq', '').replace('.fasta', '').replace('.fa', '').replace('.gz', '')
         base_name = (base_name.replace('_R1_bacterial', '')
                              .replace('_1_bacterial', '')
                              .replace('_bacterial_R1', '')
@@ -292,8 +327,7 @@ def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predic
         raise OxyMetaGError("Mode must be 'modern', 'ancient', or 'custom'")
     
     package_data_dir = str(Path(get_package_data_path("")).parent / "data")
-    package_base = Path(__file__).parent
-    r_script_path = str(package_base / "scripts" / "predict_oxygen.R")
+    r_script_path = get_package_data_path("../scripts/predict_oxygen.R")
     
     if not Path(input_dir).exists():
         raise OxyMetaGError(f"Input directory not found: {input_dir}")

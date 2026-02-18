@@ -179,8 +179,10 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     aerobe_rpk <- oxygen_rpk$RPKsum[oxygen_rpk$Oxygen == "aerobic"]
     anaerobe_rpk <- oxygen_rpk$RPKsum[oxygen_rpk$Oxygen == "anaerobic"]
     
-    if (length(anaerobe_rpk) == 0 || anaerobe_rpk == 0) {
-      results$ratio[i] <- ifelse(length(aerobe_rpk) > 0 && aerobe_rpk > 0, Inf, NA)
+    # Only calculate ratio if both aerobic and anaerobic genes are present
+    # Otherwise set to NA (Per_aerobe will also be NA)
+    if (length(aerobe_rpk) == 0 || length(anaerobe_rpk) == 0 || anaerobe_rpk == 0) {
+      results$ratio[i] <- NA
     } else {
       results$ratio[i] <- aerobe_rpk / anaerobe_rpk
     }
@@ -188,21 +190,29 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     message("Processed sample ", i, "/", length(files), ": ", sample_id)
   }
   
-  # Make predictions using the GAM model, ratio NA are Per_anaerobe NA
+  # Make predictions using the GAM model
+  # First, convert Inf ratios to NA
   results <- results %>%
     mutate(ratio = ifelse(is.infinite(ratio), NA, ratio))
-  new_data <- data.frame(ratio = results$ratio)
-  results$Per_aerobe <- predict(oxygen_model, 
-                                newdata = new_data, 
-                                type = "response",
-                                na.action = na.exclude)
+  
+  # Initialize Per_aerobe column with NA
+  results$Per_aerobe <- NA
+  
+  # Only predict for samples with valid (non-NA) ratios
+  valid_rows <- !is.na(results$ratio)
+  if (sum(valid_rows) > 0) {
+    new_data <- data.frame(ratio = results$ratio[valid_rows])
+    results$Per_aerobe[valid_rows] <- predict(oxygen_model, 
+                                               newdata = new_data, 
+                                               type = "response")
+  }
   
   # Constrain predictions to 0-100% and set to 100% if ratio > 35
-  # If NA, that means there were 0 aerobe or anaerobe genes found
-  # You can look at the gene counts to learn something about oxygen, but not calculate the Per_aerobe
+  # If Per_aerobe is NA, that means there were 0 hits total, or only aerobe or only anaerobe genes found
+  # You can look at the gene counts to learn something about oxygen, but cannot calculate Per_aerobe
   results <- results %>%
-    mutate(Per_aerobe = pmax(0, pmin(100, Per_aerobe))) %>%
-    mutate(Per_aerobe = ifelse(ratio > 35, 100, Per_aerobe))
+    mutate(Per_aerobe = ifelse(!is.na(Per_aerobe), pmax(0, pmin(100, Per_aerobe)), NA)) %>%
+    mutate(Per_aerobe = ifelse(!is.na(ratio) & ratio > 35, 100, Per_aerobe))
   
   # Save results
   write.table(results, output_file, sep = "\t", row.names = FALSE, quote = FALSE)
