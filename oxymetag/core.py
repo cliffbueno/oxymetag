@@ -326,11 +326,36 @@ def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predic
     else:
         raise OxyMetaGError("Mode must be 'modern', 'ancient', or 'custom'")
     
-    package_data_dir = str(Path(get_package_data_path("")).parent / "data")
-    r_script_path = get_package_data_path("../scripts/predict_oxygen.R")
+    # Get package data directory and construct paths
+    package_data_dir = str(Path(get_package_data_path("")).resolve())
+    package_base_dir = Path(package_data_dir).parent  # oxymetag/oxymetag/
+    r_script_path = str(package_base_dir / "scripts" / "predict_oxygen.R")
+    
+    logger.info(f"R script path: {r_script_path}")
+    logger.info(f"Package data directory: {package_data_dir}")
+    logger.info(f"Input directory: {input_dir}")
+    logger.info(f"Output file: {output_file}")
+    logger.info(f"Current working directory: {Path.cwd()}")
+    
+    if not Path(r_script_path).exists():
+        raise OxyMetaGError(f"R script not found: {r_script_path}")
     
     if not Path(input_dir).exists():
-        raise OxyMetaGError(f"Input directory not found: {input_dir}")
+        abs_path = Path(input_dir).resolve()
+        raise OxyMetaGError(
+            f"Input directory not found: {input_dir}\n"
+            f"Absolute path checked: {abs_path}\n"
+            f"Current working directory: {Path.cwd()}\n"
+            f"Hint: Use absolute paths (e.g., /full/path/to/{input_dir}) to avoid directory issues"
+        )
+    
+    # Check if output directory exists (if a directory path is specified)
+    output_dir = Path(output_file).parent
+    if str(output_dir) != '.' and not output_dir.exists():
+        raise OxyMetaGError(
+            f"Output directory does not exist: {output_dir}\n"
+            f"Please create the directory first or use an absolute path to an existing directory"
+        )
     
     cmd = [
         'Rscript', r_script_path,
@@ -340,16 +365,23 @@ def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predic
     
     try:
         logger.info(f"Calling R script: {' '.join(cmd)}")
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        # Run from current working directory to match manual execution
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True, cwd=str(Path.cwd()))
         logger.info("R script completed successfully")
         if result.stdout:
             logger.info(f"R output: {result.stdout}")
             
     except subprocess.CalledProcessError as e:
-        logger.error(f"R script failed: {e}")
+        logger.error(f"R script failed with exit code {e.returncode}")
+        if e.stdout:
+            logger.error(f"R stdout:\n{e.stdout}")
         if e.stderr:
-            logger.error(f"R stderr: {e.stderr}")
-        raise OxyMetaGError(f"Aerobe prediction failed: {e}")
+            logger.error(f"R stderr:\n{e.stderr}")
+        # Show the actual error message to help diagnose
+        error_msg = f"Aerobe prediction failed with exit code {e.returncode}"
+        if e.stderr:
+            error_msg += f"\nR Error: {e.stderr}"
+        raise OxyMetaGError(error_msg)
     
     if Path(output_file).exists():
         results_df = pd.read_csv(output_file, sep='\t')

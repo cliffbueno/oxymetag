@@ -92,7 +92,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     ratio = numeric(length(files)),
     aerobe_pfams = integer(length(files)),
     anaerobe_pfams = integer(length(files)),
-    Per_aerobe = numeric(length(files)),
+    Oxygen_level = numeric(length(files)),
     stringsAsFactors = FALSE
   )
   
@@ -149,7 +149,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     
     if (nrow(d) == 0) {
       message("Warning: No significant hits for ", sample_id)
-      results$ratio[i] <- 0
+      results$ratio[i] <- NA
       results$aerobe_pfams[i] <- 0
       results$anaerobe_pfams[i] <- 0
       next
@@ -159,6 +159,13 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     pf_count <- as.data.frame(table(d$Pfam))
     results$aerobe_pfams[i] <- sum(as.character(pf_count$Var1) %in% aerobic_pfams$Pfam)
     results$anaerobe_pfams[i] <- sum(as.character(pf_count$Var1) %in% anaerobic_pfams$Pfam)
+    
+    # If both aerobe and anaerobe pfams are 0, set ratio to NA and skip
+    if (results$aerobe_pfams[i] == 0 && results$anaerobe_pfams[i] == 0) {
+      message("Warning: No aerobic or anaerobic pfams found for ", sample_id)
+      results$ratio[i] <- NA
+      next
+    }
     
     # Calculate gene hits and length correction
     gene.hits <- d %>% 
@@ -180,7 +187,7 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
     anaerobe_rpk <- oxygen_rpk$RPKsum[oxygen_rpk$Oxygen == "anaerobic"]
     
     # Only calculate ratio if both aerobic and anaerobic genes are present
-    # Otherwise set to NA (Per_aerobe will also be NA)
+    # Otherwise set to NA (Oxygen_level will also be NA)
     if (length(aerobe_rpk) == 0 || length(anaerobe_rpk) == 0 || anaerobe_rpk == 0) {
       results$ratio[i] <- NA
     } else {
@@ -195,24 +202,24 @@ predict_oxygen <- function(input_dir, output_file, package_data_dir, mode, idcut
   results <- results %>%
     mutate(ratio = ifelse(is.infinite(ratio), NA, ratio))
   
-  # Initialize Per_aerobe column with NA
-  results$Per_aerobe <- NA
+  # Initialize Oxygen_level column with NA
+  results$Oxygen_level <- NA
   
   # Only predict for samples with valid (non-NA) ratios
   valid_rows <- !is.na(results$ratio)
   if (sum(valid_rows) > 0) {
     new_data <- data.frame(ratio = results$ratio[valid_rows])
-    results$Per_aerobe[valid_rows] <- predict(oxygen_model, 
+    results$Oxygen_level[valid_rows] <- predict(oxygen_model, 
                                                newdata = new_data, 
                                                type = "response")
   }
   
   # Constrain predictions to 0-100% and set to 100% if ratio > 35
-  # If Per_aerobe is NA, that means there were 0 hits total, or only aerobe or only anaerobe genes found
-  # You can look at the gene counts to learn something about oxygen, but cannot calculate Per_aerobe
+  # If Oxygen_level is NA, that means there were 0 hits total, or only aerobe or only anaerobe genes found
+  # You can look at the gene counts to learn something about oxygen, but cannot calculate Oxygen_level
   results <- results %>%
-    mutate(Per_aerobe = ifelse(!is.na(Per_aerobe), pmax(0, pmin(100, Per_aerobe)), NA)) %>%
-    mutate(Per_aerobe = ifelse(!is.na(ratio) & ratio > 35, 100, Per_aerobe))
+    mutate(Oxygen_level = ifelse(!is.na(Oxygen_level), pmax(0, pmin(100, Oxygen_level)), NA)) %>%
+    mutate(Oxygen_level = ifelse(!is.na(ratio) & ratio > 35, 100, Oxygen_level))
   
   # Save results
   write.table(results, output_file, sep = "\t", row.names = FALSE, quote = FALSE)
