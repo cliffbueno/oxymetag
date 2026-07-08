@@ -108,7 +108,7 @@ Make sure you run oxymetag setup from the directory where you want the database 
 **Output:** Bacterial-only FASTQ files in `BactReads/` directory
 
 **Arguments:**
-- `-i, --input`: Input fastq.gz files (paired-end or merged)
+- `-i, --input`: Input fastq.gz files (paired-end or merged). If you have paired-end reads, just supply the _R1 file, and it will automatically check for _R2 and run in paired-end mode if it finds it.
 - `-o, --output`: Output directory (default: BactReads)
 - `-t, --threads`: Number of threads (default: 48)
 - `--kraken-db`: Kraken2 database path (default: kraken2_db)
