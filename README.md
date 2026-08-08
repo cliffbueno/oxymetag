@@ -54,7 +54,7 @@ pip install oxymetag
 oxymetag setup
 
 # 2. Extract bacterial reads
-oxymetag extract -i sample1_R1.fastq.gz -o BactReads -t 48
+oxymetag extract -R1 sample1_R1.fastq.gz -R2 sample1_R2.fastq.gz -o BactReads -t 48
 
 # 3. Profile samples with DIAMOND
 oxymetag profile -i BactReads -o diamond_output -m diamond -t 8
@@ -108,7 +108,8 @@ Make sure you run oxymetag setup from the directory where you want the database 
 **Output:** Bacterial-only FASTQ files in `BactReads/` directory
 
 **Arguments:**
-- `-i, --input`: Input fastq.gz files (paired-end or merged). If you have paired-end reads, just supply the _R1 file, and it will automatically check for _R2 and run in paired-end mode if it finds it.
+- `-R1, --read1`: R1 FASTQ files (required). For single-end reads, provide your single-end files here. For paired-end reads, provide the R1 files.
+- `-R2, --read2`: R2 FASTQ files (optional, for paired-end reads only). Must have the same number of files as -R1 in the same order.
 - `-o, --output`: Output directory (default: BactReads)
 - `-t, --threads`: Number of threads (default: 48)
 - `--kraken-db`: Kraken2 database path (default: kraken2_db)
