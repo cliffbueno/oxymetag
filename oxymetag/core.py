@@ -18,10 +18,17 @@ class OxyMetaGError(Exception):
     """Custom exception for OxyMetaG errors"""
     pass
 
-def extract_reads(input_files: List[str], output_dir: str = "BactReads", 
-                 threads: int = 48, kraken_db: str = "kraken2_db"):
+def extract_reads(read1_files: List[str], read2_files: Optional[List[str]] = None,
+                 output_dir: str = "BactReads", threads: int = 48, kraken_db: str = "kraken2_db"):
     """
     Extract bacterial reads from metagenomic samples using Kraken2
+    
+    Args:
+        read1_files: List of R1 fastq files (required for single-end or paired-end)
+        read2_files: List of R2 fastq files (optional, for paired-end reads)
+        output_dir: Output directory for extracted reads
+        threads: Number of threads to use
+        kraken_db: Path to Kraken2 database
     """
     logger.info(f"Starting bacterial read extraction with {threads} threads")
     
@@ -31,80 +38,94 @@ def extract_reads(input_files: List[str], output_dir: str = "BactReads",
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True)
     
-    for input_file in input_files:
-        input_path = Path(input_file)
-        if not input_path.exists():
-            logger.warning(f"Input file not found: {input_file}")
+    # If R2 files provided, verify they match R1 count
+    if read2_files is not None and len(read2_files) != len(read1_files):
+        raise OxyMetaGError(f"Number of R1 files ({len(read1_files)}) must match R2 files ({len(read2_files)})")
+    
+    # Create a list of tuples (R1, R2 or None)
+    if read2_files is None:
+        file_pairs = [(r1, None) for r1 in read1_files]
+    else:
+        file_pairs = list(zip(read1_files, read2_files))
+    
+    for idx, (r1_file, r2_file) in enumerate(file_pairs):
+        r1_path = Path(r1_file)
+        if not r1_path.exists():
+            logger.warning(f"R1 file not found: {r1_file}")
             continue
-            
-        logger.info(f"Processing {input_file}")
         
-        base_name = input_path.stem.replace('.fastq', '').replace('.gz', '')
+        if r2_file is not None:
+            r2_path = Path(r2_file)
+            if not r2_path.exists():
+                logger.warning(f"R2 file not found for {r1_file}: {r2_file}")
+                r2_file = None
         
-        if '_R1' in base_name or '_1' in base_name:
-            kraken_base = base_name.replace('_R1', '').replace('_1', '')
-        else:
-            kraken_base = base_name
+        logger.info(f"Processing {r1_file}" + (f" with {r2_file}" if r2_file else " (single-end)"))
+        
+        # Extract base name from R1 file, removing read pair designation
+        base_name = r1_path.stem.replace('.fastq', '').replace('.fq', '').replace('.gz', '')
+        
+        # Remove _R1, _1, _R2, _2, etc. from the end
+        kraken_base = base_name
+        for suffix in ['_R1', '_R2', '_1', '_2']:
+            if kraken_base.endswith(suffix):
+                kraken_base = kraken_base[:-len(suffix)]
+                break
         
         kraken_output = output_path / f"{kraken_base}_kraken.out"
         kraken_report = output_path / f"{kraken_base}_report.txt"
         
-        if '_R1' in base_name or '_1' in base_name:
-            r2_file = str(input_path).replace('_R1', '_R2').replace('_1', '_2')
-            if Path(r2_file).exists():
-                cmd = [
-                    'kraken2', '--db', kraken_db, '--threads', str(threads),
-                    '--output', str(kraken_output), '--report', str(kraken_report),
-                    '--paired', str(input_path), r2_file
-                ]
-            else:
-                logger.warning(f"R2 file not found for {input_file}, treating as single-end")
-                cmd = [
-                    'kraken2', '--db', kraken_db, '--threads', str(threads),
-                    '--output', str(kraken_output), '--report', str(kraken_report),
-                    str(input_path)
-                ]
+        # Build Kraken2 command
+        if r2_file is not None:
+            cmd = [
+                'kraken2', '--db', kraken_db, '--threads', str(threads),
+                '--output', str(kraken_output), '--report', str(kraken_report),
+                '--paired', str(r1_path), str(r2_path)
+            ]
+            logger.info(f"Running Kraken2 in paired-end mode")
         else:
             cmd = [
                 'kraken2', '--db', kraken_db, '--threads', str(threads),
                 '--output', str(kraken_output), '--report', str(kraken_report),
-                str(input_path)
+                str(r1_path)
             ]
+            logger.info(f"Running Kraken2 in single-end mode")
         
         try:
             subprocess.run(cmd, check=True)
-            logger.info(f"Kraken2 classification completed for {input_file}")
+            logger.info(f"Kraken2 classification completed for {r1_file}")
             
-            bacterial_reads = output_path / f"{base_name}_bacterial.fastq"
+            # Extract bacterial reads from R1
+            r1_bacterial = output_path / f"{base_name}_bacterial.fastq"
             
             cmd = [
                 'extract_kraken_reads.py',
                 '-k', str(kraken_output),
-                '-s', str(input_path),
-                '-o', str(bacterial_reads),
+                '-s', str(r1_path),
+                '-o', str(r1_bacterial),
                 '-r', str(kraken_report),
                 '--taxid', '2',
                 '--include-children'
             ]
             
-            if ('_R1' in base_name or '_1' in base_name) and Path(r2_file).exists():
-                if '_R1' in base_name:
-                    r2_output = output_path / f"{base_name.replace('_R1', '_R2')}_bacterial.fastq"
-                else:
-                    r2_output = output_path / f"{base_name.replace('_1', '_2')}_bacterial.fastq"
-                cmd.extend(['-s2', r2_file])
-                cmd.extend(['-o2', str(r2_output)])
+            # If paired-end, also extract R2
+            if r2_file is not None:
+                r2_base_name = Path(r2_file).stem.replace('.fastq', '').replace('.fq', '').replace('.gz', '')
+                r2_bacterial = output_path / f"{r2_base_name}_bacterial.fastq"
+                cmd.extend(['-s2', str(r2_path)])
+                cmd.extend(['-o2', str(r2_bacterial)])
             
             subprocess.run(cmd, check=True)
-            subprocess.run(['gzip', str(bacterial_reads)], check=True)
             
-            if ('_R1' in base_name or '_1' in base_name) and Path(r2_file).exists():
-                subprocess.run(['gzip', str(r2_output)], check=True)
+            # Gzip output files
+            subprocess.run(['gzip', str(r1_bacterial)], check=True)
+            if r2_file is not None:
+                subprocess.run(['gzip', str(r2_bacterial)], check=True)
             
-            logger.info(f"Bacterial reads extracted for {input_file}")
+            logger.info(f"Bacterial reads extracted for {r1_file}")
             
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to process {input_file}: {e}")
+            logger.error(f"Failed to process {r1_file}: {e}")
             continue
 
 
@@ -326,36 +347,11 @@ def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predic
     else:
         raise OxyMetaGError("Mode must be 'modern', 'ancient', or 'custom'")
     
-    # Get package data directory and construct paths
-    package_data_dir = str(Path(get_package_data_path("")).resolve())
-    package_base_dir = Path(package_data_dir).parent  # oxymetag/oxymetag/
-    r_script_path = str(package_base_dir / "scripts" / "predict_oxygen.R")
-    
-    logger.info(f"R script path: {r_script_path}")
-    logger.info(f"Package data directory: {package_data_dir}")
-    logger.info(f"Input directory: {input_dir}")
-    logger.info(f"Output file: {output_file}")
-    logger.info(f"Current working directory: {Path.cwd()}")
-    
-    if not Path(r_script_path).exists():
-        raise OxyMetaGError(f"R script not found: {r_script_path}")
+    package_data_dir = str(Path(get_package_data_path("")).parent / "data")
+    r_script_path = get_package_data_path("../scripts/predict_oxygen.R")
     
     if not Path(input_dir).exists():
-        abs_path = Path(input_dir).resolve()
-        raise OxyMetaGError(
-            f"Input directory not found: {input_dir}\n"
-            f"Absolute path checked: {abs_path}\n"
-            f"Current working directory: {Path.cwd()}\n"
-            f"Hint: Use absolute paths (e.g., /full/path/to/{input_dir}) to avoid directory issues"
-        )
-    
-    # Check if output directory exists (if a directory path is specified)
-    output_dir = Path(output_file).parent
-    if str(output_dir) != '.' and not output_dir.exists():
-        raise OxyMetaGError(
-            f"Output directory does not exist: {output_dir}\n"
-            f"Please create the directory first or use an absolute path to an existing directory"
-        )
+        raise OxyMetaGError(f"Input directory not found: {input_dir}")
     
     cmd = [
         'Rscript', r_script_path,
@@ -365,23 +361,16 @@ def predict_aerobes(input_dir: str = None, output_file: str = "per_aerobe_predic
     
     try:
         logger.info(f"Calling R script: {' '.join(cmd)}")
-        # Run from current working directory to match manual execution
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True, cwd=str(Path.cwd()))
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
         logger.info("R script completed successfully")
         if result.stdout:
             logger.info(f"R output: {result.stdout}")
             
     except subprocess.CalledProcessError as e:
-        logger.error(f"R script failed with exit code {e.returncode}")
-        if e.stdout:
-            logger.error(f"R stdout:\n{e.stdout}")
+        logger.error(f"R script failed: {e}")
         if e.stderr:
-            logger.error(f"R stderr:\n{e.stderr}")
-        # Show the actual error message to help diagnose
-        error_msg = f"Aerobe prediction failed with exit code {e.returncode}"
-        if e.stderr:
-            error_msg += f"\nR Error: {e.stderr}"
-        raise OxyMetaGError(error_msg)
+            logger.error(f"R stderr: {e.stderr}")
+        raise OxyMetaGError(f"Aerobe prediction failed: {e}")
     
     if Path(output_file).exists():
         results_df = pd.read_csv(output_file, sep='\t')

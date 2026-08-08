@@ -31,8 +31,10 @@ def main():
     setup_parser = subparsers.add_parser('setup', help='Setup Kraken2 database')
     
     extract_parser = subparsers.add_parser('extract', help='Extract bacterial reads')
-    extract_parser.add_argument('-i', '--input', nargs='+', required=True,
-                               help='Input fastq.gz files')
+    extract_parser.add_argument('-R1', '--read1', nargs='+', required=True,
+                               help='Input R1 fastq files (required)')
+    extract_parser.add_argument('-R2', '--read2', nargs='+', default=None,
+                               help='Input R2 fastq files (optional, for paired-end reads)')
     extract_parser.add_argument('-o', '--output', default='BactReads',
                                help='Output directory (default: BactReads)')
     extract_parser.add_argument('-t', '--threads', type=int, default=48,
@@ -85,7 +87,7 @@ def main():
             run_kraken2_setup()
             
         elif args.command == 'extract':
-            extract_reads(args.input, args.output, args.threads, args.kraken_db)
+            extract_reads(args.read1, args.read2, args.output, args.threads, args.kraken_db)
             
         elif args.command == 'profile':
             profile_samples(args.input, args.output, args.threads, args.method,
